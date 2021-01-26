@@ -1,0 +1,42 @@
+version: '2.4'
+
+services:
+  vpn:
+    image: openconnect
+    privileged: true
+    restart: 'unless-stopped'
+    volumes:
+      - ./resource/openconnect.conf:/etc/openconnect/openconnect.conf:ro
+      - ./vpn_password:/secrets/vpn_password:ro
+      - ./dante/sockd.conf:/etc/sockd.conf:ro
+    environment:
+      - OPENCONNECT_PROTOCOL=anyconnect
+#      - OPENCONNECT_SERVERCERT=
+      - OPENCONNECT_SERVER=YOUROCSERVSERVER
+      - OPENCONNECT_USER=home
+      - OPENCONNECT_PASSWORD_FILE=/secrets/vpn_password
+      - OPENCONNECT_TIMESTAMP=true
+      - OPENCONNECT_VERBOSE=false
+      - OPENCONNECT_NON_INTER=true
+      - OPENCONNECT_NO_DTLS=false
+    cap_add:
+      - NET_ADMIN
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    networks:
+      ocserv:
+        ipv4_address: Set Native IP Address of Your network for Container
+    user: root
+networks:
+  ocserv:
+    name: ocserv
+    driver: macvlan
+    driver_opts:
+      parent: eth0
+      macvlan_mode: bridge
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24 # Set Your Native network Subnet
+          ip_range: 192.168.1.0/24 # Set Your Native network Subnet
+          gateway: 192.168.1.1 # Set Your Gateway Address
